@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %} Cart {% endblock %}
+{% block content %}
+
+<div class="shopping-cart">
+    <!-- Title -->
+    <div class="title">
+        Shopping Bag
+    </div>
+
+    <!-- Товары в корзине -->
+    {% for item in cart_items %}
+        <div class="item">
+            <div class="buttons">
+                <button class="delete-btn" onclick="removeFromCart({{ item.product.id }})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                      <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
+                    </svg>
+                </button>
+
+            </div>
+
+            <div class="image">
+                <img src="/static/{{ item.product.img }}" />
+            </div>
+
+            <div class="description">
+                <span>{{ item.product.name }}</span>
+            </div>
+
+            <div class="quantity">
+                <span>{{ item.quantity }}</span>
+            </div>
+
+            <div class="total-price">₾{{ item.product.price * item.quantity }}</div>
+        </div>
+    {% endfor %}
+
+
+<style>
+.shopping-cart {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.item {
+    border-bottom: 1px solid #ddd;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.delete-btn {
+    background-color: #ff4d4d;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.image {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    margin: 20px;
+}
+
+.image img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.description {
+    flex-grow: 1;
+    margin: 10px
+}
+
+.quantity {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.total-price {
+    font-weight: bold;
+    font-size: 18px;
+    margin: 10px
+}
+
+.total {
+    margin-top: 20px;
+    text-align: right;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.buttons button:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+</style>
+<script>
+function removeFromCart(productId, quantity) {
+    fetch('/remove_from_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId, quantity: quantity }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartInterface(data.product_name, data.quantity_removed);
+        } else {
+            console.error(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function updateCartInterface(productName, quantityRemoved) {
+    const cartItem = document.getElementById(`cart-item-${productId}`);
+
+    if (cartItem) {
+        const quantityElement = cartItem.querySelector('.quantity');
+        const currentQuantity = parseInt(quantityElement.textContent, 10);
+
+        if (currentQuantity > quantityRemoved) {
+            quantityElement.textContent = (currentQuantity - quantityRemoved).toString();
+        } else {
+            cartItem.remove();
+        }
+
+        console.log(`Product "${productName}" removed (${quantityRemoved} item(s)) from the interface`);
+    } else {
+        console.error(`Error: Cart item with ID "cart-item-${productId}" not found in the interface`);
+    }
+}
+
+    function updateQuantity(productId, action) {
+        fetch('/update_quantity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ product_id: productId, action: action }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var quantityInput = document.getElementById('quantity-' + productId);
+                if (quantityInput) {
+                    quantityInput.value = data.quantity;
+                }
+
+                updateTotal(data.total_price);
+
+                console.log('Quantity updated successfully');
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function updateTotal(totalPrice) {
+        var totalElement = document.getElementById('total');
+        if (totalElement) {
+            totalElement.innerText = 'Total: $' + totalPrice;
+        }
+    }
+</script>
+
+
+{% endblock %}
